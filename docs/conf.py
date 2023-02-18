@@ -38,10 +38,10 @@ dist = distribution("saltext.elasticsearch8")
 
 # -- Project information -----------------------------------------------------
 this_year = datetime.datetime.today().year
-if this_year == 2021:
-    copyright_year = 2021
+if this_year == 2023:
+    copyright_year = 2023
 else:
-    copyright_year = "2021 - {}".format(this_year)
+    copyright_year = "2023 - {}".format(this_year)
 project = dist.metadata["Summary"]
 author = dist.metadata["Author"]
 copyright = "{}, {}".format(copyright_year, author)
@@ -66,7 +66,6 @@ rst_prolog = """
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "furo",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
@@ -96,14 +95,14 @@ exclude_patterns = [
     "sitevars.rst",
 ]
 
-autosummary_generate = True
+autosummary_generate = False
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "furo"
+#html_theme = "furo"
 html_title = project
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -143,7 +142,8 @@ intersphinx_mapping = {
 # <---- Intersphinx Config -----------------------------------------------------------------------------------------
 
 # ----- Autodoc Config ---------------------------------------------------------------------------------------------->
-autodoc_default_options = {"member-order": "bysource"}
+#autodoc_default_options = {"member-order": "bysource"}
+autodoc_default_options = {"members": True, "inherited-members": True, "show-inheritance": True}
 autodoc_mock_imports = ["salt"]
 # <---- Autodoc Config -----------------------------------------------------------------------------------------------
 

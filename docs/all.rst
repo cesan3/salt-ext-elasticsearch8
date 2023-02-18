@@ -3,14 +3,24 @@
 Complete List of elasticsearch8
 ===============================
 
-
 .. toctree::
    :maxdepth: 2
 
    ref/modules.rst
 
+.. toctree::
+   :maxdepth: 2
+
+   ref/saltext.elasticsearch8.rst
+
 
 .. toctree::
    :maxdepth: 2
 
-   ref/states.rst
+   ref/saltext.elasticsearch8.modules.rst
+
+
+.. toctree::
+   :maxdepth: 2
+
+   ref/saltext.elasticsearch8.states.rst

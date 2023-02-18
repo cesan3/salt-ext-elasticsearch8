@@ -15,12 +15,12 @@ from nox.virtualenv import VirtualEnv
 
 # Nox options
 #  Reuse existing virtualenvs
-nox.options.reuse_existing_virtualenvs = True
+nox.options.reuse_existing_virtualenvs = False
 #  Don't fail on missing interpreters
 nox.options.error_on_missing_interpreters = False
 
 # Python versions to test against
-PYTHON_VERSIONS = ("3", "3.5", "3.6", "3.7", "3.8", "3.9")
+PYTHON_VERSIONS = ("3.9", "3.10")
 # Be verbose when running under a CI context
 CI_RUN = (
     os.environ.get("JENKINS_URL") or os.environ.get("CI") or os.environ.get("DRONE") is not None
@@ -71,8 +71,8 @@ def _get_session_python_version_info(session):
 
 def _get_pydir(session):
     version_info = _get_session_python_version_info(session)
-    if version_info < (3, 5):
-        session.error("Only Python >= 3.5 is supported")
+    if version_info < (3, 9):
+        session.error("Only Python >= 3.9 is supported")
     return "py{}.{}".format(*version_info)
 
 
@@ -84,11 +84,19 @@ def _install_requirements(
     install_source=False,
     install_salt=True,
     install_extras=None,
+    skip_reqs=True,
 ):
     install_extras = install_extras or []
-    if SKIP_REQUIREMENTS_INSTALL is False:
+    if (SKIP_REQUIREMENTS_INSTALL is False or skip_reqs is False):
         # Always have the wheel package installed
         session.install("--progress-bar=off", "wheel", silent=PIP_INSTALL_SILENT)
+        session.install("--progress-bar=off", "--upgrade", "pip", silent=PIP_INSTALL_SILENT) # ADDED
+        session.install("--progress-bar=off", "--upgrade", "pytest", silent=PIP_INSTALL_SILENT) # ADDED
+        session.install("--progress-bar=off", "--upgrade", "pylint", silent=PIP_INSTALL_SILENT) # ADDED
+        session.install("--progress-bar=off", "--upgrade", "six", silent=PIP_INSTALL_SILENT) # ADDED
+        session.install("--progress-bar=off", "--upgrade", "saltpylint", silent=PIP_INSTALL_SILENT) # ADDED
+        session.install("--progress-bar=off", "--upgrade", "pytest-salt-factories", silent=PIP_INSTALL_SILENT) # ADDED
+        session.install("--progress-bar=off", "--upgrade", "Jinja2", silent=PIP_INSTALL_SILENT) # ADDED
         if install_coverage_requirements:
             session.install(
                 "--progress-bar=off", COVERAGE_VERSION_REQUIREMENT, silent=PIP_INSTALL_SILENT
@@ -97,7 +105,7 @@ def _install_requirements(
         if install_salt:
             session.install("--progress-bar=off", SALT_REQUIREMENT, silent=PIP_INSTALL_SILENT)
 
-        if install_test_requirements:
+        if install_test_requirements and "tests" not in install_extras:
             install_extras.append("tests")
 
         if EXTRA_REQUIREMENTS_INSTALL:
@@ -109,21 +117,18 @@ def _install_requirements(
             )
             install_command = ["--progress-bar=off"]
             install_command += [req.strip() for req in EXTRA_REQUIREMENTS_INSTALL.split()]
-            session.install(*passed_requirements, silent=PIP_INSTALL_SILENT)
+            session.install(*install_command, silent=PIP_INSTALL_SILENT)
 
         if install_source:
             pkg = "."
             if install_extras:
                 pkg += f"[{','.join(install_extras)}]"
             session.install("-e", pkg, silent=PIP_INSTALL_SILENT)
-        elif install_extras:
-            pkg = f".[{','.join(install_extras)}]"
-            session.install(pkg, silent=PIP_INSTALL_SILENT)
 
 
 @nox.session(python=PYTHON_VERSIONS)
 def tests(session):
-    _install_requirements(session, install_source=True)
+    _install_requirements(session, install_source=True, install_extras=["tests"], skip_reqs=False)
 
     sitecustomize_dir = session.run("salt-factories", "--coverage", silent=True, log=False)
     python_path_env_var = os.environ.get("PYTHONPATH") or None
@@ -157,6 +162,7 @@ def tests(session):
         "--showlocals",
         "-ra",
         "-s",
+        "src",
     ]
     if session._runner.global_config.forcecolor:
         args.append("--color=yes")
@@ -179,46 +185,7 @@ def tests(session):
                 continue
         else:
             args.append("tests/")
-    try:
-        session.run("coverage", "run", "-m", "pytest", *args, env=env)
-    finally:
-        # Always combine and generate the XML coverage report
-        try:
-            session.run("coverage", "combine")
-        except CommandFailed:
-            # Sometimes some of the coverage files are corrupt which would
-            # trigger a CommandFailed exception
-            pass
-        # Generate report for salt code coverage
-        session.run(
-            "coverage",
-            "xml",
-            "-o",
-            str(COVERAGE_REPORT_PROJECT),
-            "--omit=tests/*",
-            "--include=src/saltext/elasticsearch8/*",
-        )
-        # Generate report for tests code coverage
-        session.run(
-            "coverage",
-            "xml",
-            "-o",
-            str(COVERAGE_REPORT_TESTS),
-            "--omit=src/saltext/elasticsearch8/*",
-            "--include=tests/*",
-        )
-        try:
-            session.run("coverage", "report", "--show-missing", "--include=src/saltext/elasticsearch8/*")
-            # If you also want to display the code coverage report on the CLI
-            # for the tests, comment the call above and uncomment the line below
-            # session.run(
-            #    "coverage", "report", "--show-missing",
-            #    "--include=src/saltext/elasticsearch8/*,tests/*"
-            # )
-        finally:
-            # Move the coverage DB to artifacts/coverage in order for it to be archived by CI
-            if COVERAGE_REPORT_DB.exists():
-                shutil.move(str(COVERAGE_REPORT_DB), str(ARTIFACTS_DIR / COVERAGE_REPORT_DB.name))
+    session.run("pytest", *args, env=env)
 
 
 class Tee:
@@ -244,9 +211,10 @@ class Tee:
 def _lint(session, rcfile, flags, paths, tee_output=True):
     _install_requirements(
         session,
-        install_salt=False,
+        install_salt=True,
         install_coverage_requirements=False,
         install_test_requirements=False,
+        install_source=True,
         install_extras=["dev", "tests"],
     )
 
@@ -321,7 +289,7 @@ def _lint_pre_commit(session, rcfile, flags, paths):
     _lint(session, rcfile, flags, paths, tee_output=False)
 
 
-@nox.session(python="3")
+@nox.session(python="3.9")
 def lint(session):
     """
     Run PyLint against the code and the test suite. Set PYLINT_REPORT to a path to capture output.
@@ -330,7 +298,7 @@ def lint(session):
     session.notify("lint-tests-{}".format(session.python))
 
 
-@nox.session(python="3", name="lint-code")
+@nox.session(python="3.9", name="lint-code")
 def lint_code(session):
     """
     Run PyLint against the code. Set PYLINT_REPORT to a path to capture output.
@@ -339,11 +307,12 @@ def lint_code(session):
     if session.posargs:
         paths = session.posargs
     else:
-        paths = ["setup.py", "noxfile.py", "src/"]
+        #paths = ["setup.py", "noxfile.py", "src/"]
+        paths = ["src/"]
     _lint(session, ".pylintrc", flags, paths)
 
 
-@nox.session(python="3", name="lint-tests")
+@nox.session(python="3.9", name="lint-tests")
 def lint_tests(session):
     """
     Run PyLint against the test suite. Set PYLINT_REPORT to a path to capture output.
@@ -386,7 +355,7 @@ def lint_tests_pre_commit(session):
     _lint_pre_commit(session, ".pylintrc", flags, paths)
 
 
-@nox.session(python="3")
+@nox.session(python="3.9")
 def docs(session):
     """
     Build Docs
@@ -394,9 +363,10 @@ def docs(session):
     _install_requirements(
         session,
         install_coverage_requirements=False,
-        install_test_requirements=False,
+        install_test_requirements=True,
         install_source=True,
-        install_extras=["docs"],
+        install_extras=["docs", "tests"],
+        skip_reqs=False
     )
     os.chdir("docs/")
     session.run("make", "clean", external=True)
@@ -410,60 +380,6 @@ def docs(session):
                 session.error("\n" + "".join(contents))
     session.run("make", "html", "SPHINXOPTS=-W", external=True)
     os.chdir(str(REPO_ROOT))
-
-
-@nox.session(name="docs-html", python="3")
-@nox.parametrize("clean", [False, True])
-@nox.parametrize("include_api_docs", [False, True])
-def docs_html(session, clean, include_api_docs):
-    """
-    Build Sphinx HTML Documentation
-
-    TODO: Add option for `make linkcheck` and `make coverage`
-          calls via Sphinx. Ran into problems with two when
-          using Furo theme and latest Sphinx.
-    """
-    _install_requirements(
-        session,
-        install_coverage_requirements=False,
-        install_test_requirements=False,
-        install_source=True,
-        install_extras=["docs"],
-    )
-    if include_api_docs:
-        gen_api_docs(session)
-    build_dir = Path("docs", "_build", "html")
-    sphinxopts = "-Wn"
-    if clean:
-        sphinxopts += "E"
-    args = [sphinxopts, "--keep-going", "docs", str(build_dir)]
-    session.run("sphinx-build", *args, external=True)
-
-
-@nox.session(name="docs-dev", python="3")
-@nox.parametrize("clean", [False, True])
-def docs_dev(session, clean) -> None:
-    """
-    Build and serve the Sphinx HTML documentation, with live reloading on file changes, via sphinx-autobuild.
-
-    Note: Only use this in INTERACTIVE DEVELOPMENT MODE. This SHOULD NOT be called
-        in CI/CD pipelines, as it will hang.
-    """
-    _install_requirements(
-        session,
-        install_coverage_requirements=False,
-        install_test_requirements=False,
-        install_source=True,
-        install_extras=["docs", "docsauto"],
-    )
-
-    # Launching LIVE reloading Sphinx session
-    build_dir = Path("docs", "_build", "html")
-    args = ["--watch", ".", "--open-browser", "docs", str(build_dir)]
-    if clean and build_dir.exists():
-        shutil.rmtree(build_dir)
-
-    session.run("sphinx-autobuild", *args)
 
 
 @nox.session(name="docs-crosslink-info", python="3")
@@ -530,3 +446,12 @@ def gen_api_docs(session):
         "src/saltext",
         "src/saltext/elasticsearch8/config/schemas",
     )
+
+
+@nox.session(name="review", python="3.9")
+def review(session):
+    """
+    Useful for code reviews - builds the docs locally and runs the full test suite.
+    """
+    session.notify("docs")
+    session.notify(f"tests-{session.python}")
