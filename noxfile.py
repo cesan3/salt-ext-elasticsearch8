@@ -15,12 +15,12 @@ from nox.virtualenv import VirtualEnv
 
 # Nox options
 #  Reuse existing virtualenvs
-nox.options.reuse_existing_virtualenvs = True
+nox.options.reuse_existing_virtualenvs = False
 #  Don't fail on missing interpreters
 nox.options.error_on_missing_interpreters = False
 
 # Python versions to test against
-PYTHON_VERSIONS = ("3", "3.8", "3.9", "3.10")
+PYTHON_VERSIONS = ("3.9", "3.10")
 # Be verbose when running under a CI context
 CI_RUN = (
     os.environ.get("JENKINS_URL") or os.environ.get("CI") or os.environ.get("DRONE") is not None
@@ -71,8 +71,8 @@ def _get_session_python_version_info(session):
 
 def _get_pydir(session):
     version_info = _get_session_python_version_info(session)
-    if version_info < (3, 7):
-        session.error("Only Python >= 3.7 is supported")
+    if version_info < (3, 9):
+        session.error("Only Python >= 3.9 is supported")
     return "py{}.{}".format(*version_info)
 
 
@@ -286,7 +286,7 @@ def _lint_pre_commit(session, rcfile, flags, paths):
     _lint(session, rcfile, flags, paths, tee_output=False)
 
 
-@nox.session(python="3")
+@nox.session(python="3.9")
 def lint(session):
     """
     Run PyLint against the code and the test suite. Set PYLINT_REPORT to a path to capture output.
@@ -295,7 +295,7 @@ def lint(session):
     session.notify("lint-tests-{}".format(session.python))
 
 
-@nox.session(python="3", name="lint-code")
+@nox.session(python="3.9", name="lint-code")
 def lint_code(session):
     """
     Run PyLint against the code. Set PYLINT_REPORT to a path to capture output.
@@ -309,7 +309,7 @@ def lint_code(session):
     _lint(session, ".pylintrc", flags, paths)
 
 
-@nox.session(python="3", name="lint-tests")
+@nox.session(python="3.9", name="lint-tests")
 def lint_tests(session):
     """
     Run PyLint against the test suite. Set PYLINT_REPORT to a path to capture output.
@@ -352,7 +352,7 @@ def lint_tests_pre_commit(session):
     _lint_pre_commit(session, ".pylintrc", flags, paths)
 
 
-@nox.session(python="3")
+@nox.session(python="3.9")
 def docs(session):
     """
     Build Docs
@@ -360,7 +360,7 @@ def docs(session):
     _install_requirements(
         session,
         install_coverage_requirements=False,
-        install_test_requirements=False,
+        install_test_requirements=True,
         install_source=True,
         install_extras=["docs"],
     )
@@ -444,7 +444,7 @@ def gen_api_docs(session):
     )
 
 
-@nox.session(name="review", python="3")
+@nox.session(name="review", python="3.9")
 def review(session):
     """
     Useful for code reviews - builds the docs locally and runs the full test suite.
