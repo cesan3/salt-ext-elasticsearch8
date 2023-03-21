@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore the setuptools_scm auto-generated version module
+src/saltext/elasticsearch8/version.py
+
+# Ignore CI generated artifacts
+artifacts/
