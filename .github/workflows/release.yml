@@ -10,11 +10,14 @@ jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
+    concurrency: release
 
     steps:
       # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       # Set up Git
       - name: Set up Git
@@ -28,15 +31,24 @@ jobs:
         run: echo ::set-output name=tag::$(git describe --abbrev=0 --tags)
 
       # Increment the version number
+      #- name: Increment version number
+      #  id: version
+      #  uses: einaregilsson/gh-action-bump-version@v1
+      #  with:
+      #    files: |
+      #      src/saltext/elasticsearch8/version.py
+      #    bump: minor
+      #    push: true
+      #    push_tags: true
+      #
+
+      # Increment the verion number using semantic-release
       - name: Increment version number
         id: version
-        uses: einaregilsson/gh-action-bump-version@v1
-        with:
-          files: |
-            src/saltext/elasticsearch8/version.py
-          bump: minor
-          push: true
-          push_tags: true
+        run: |
+          semantic-release publish -D commit_author="github-actions <action@github.com>" -D branch=main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Get list of commits since the last release
       - name: Get list of commits
@@ -54,12 +66,17 @@ jobs:
           echo ""
           echo "Fixed Issues:"
           echo "${{ steps.commits.outputs.commits }}" | grep -E "fix|Fix" | sed 's/fix/ - /' | sed 's/Fix/ - /'
+          #
+      # Get the latest tag to determine the version number
+      - name: Get latest tag
+        id: latest_tag2
+        run: echo ::set-output name=tag::$(git describe --abbrev=0 --tags)
 
       # Create a release
       - name: Create Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.latest_tag.outputs.tag }}
+          tag_name: ${{ steps.latest_tag2.outputs.tag }}
           release_name: Release ${{ steps.version.outputs.new_version }}
           body: |
             ${{ steps.change_log.outputs.stdout }}

@@ -1,8 +1,19 @@
 
 name: Testing
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - '*'
+      - '*/*'
+      - '**'
+      - '!main'
+  pull_request:
+    branches:
+      - '*'
+      - '*/*'
+      - '**'
+      - '!main'
 jobs:
   Pre-Commit:
     runs-on: ubuntu-latest
