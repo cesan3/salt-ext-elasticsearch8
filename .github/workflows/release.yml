@@ -1,0 +1,69 @@
+name: Create Release
+
+# Trigger the workflow when a pull request is merged to main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Git
+      - name: Set up Git
+        run: |
+          git config --global user.name "Cesar Sanchez"
+          git config --global user.email "cesan3@gmail.com"
+
+      # Get the latest tag to determine the version number
+      - name: Get latest tag
+        id: latest_tag
+        run: echo ::set-output name=tag::$(git describe --abbrev=0 --tags)
+
+      # Increment the version number
+      - name: Increment version number
+        id: version
+        uses: einaregilsson/gh-action-bump-version@v1
+        with:
+          files: |
+            src/saltext/elasticsearch8/version.py
+          bump: minor
+          push: true
+          push_tags: true
+
+      # Get list of commits since the last release
+      - name: Get list of commits
+        id: commits
+        run: echo ::set-output name=commits::$(git log ${GITHUB_REF}...${{ steps.latest_tag.outputs.tag }} --pretty=format:"%s")
+
+      # Extract features and fixed issues from commit messages
+      - name: Extract features and fixed issues
+        id: change_log
+        run: |
+          echo "Changes in this release:"
+          echo ""
+          echo "Features:"
+          echo "${{ steps.commits.outputs.commits }}" | grep -E "feat|Feature" | sed 's/feat/ - /' | sed 's/Feature/ - /'
+          echo ""
+          echo "Fixed Issues:"
+          echo "${{ steps.commits.outputs.commits }}" | grep -E "fix|Fix" | sed 's/fix/ - /' | sed 's/Fix/ - /'
+
+      # Create a release
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.latest_tag.outputs.tag }}
+          release_name: Release ${{ steps.version.outputs.new_version }}
+          body: |
+            ${{ steps.change_log.outputs.stdout }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
