@@ -106,19 +106,19 @@ jobs:
       #  env:
       #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-changelog:
-  exclude:
-    labels:
-      - ignore-for-release
-  categories:
-    - title: Breaking Changes
+  changelog:
+    exclude:
       labels:
-        - Semver-Major
-        - breaking-change
-    - title: New Features
-      labels:
-        - Semver-Minor
-        - enhancement
-    - title: Other Changes
-      labels:
-        - '*'
+        - ignore-for-release
+    categories:
+      - title: Breaking Changes
+        labels:
+          - Semver-Major
+          - breaking-change
+      - title: New Features
+        labels:
+          - Semver-Minor
+          - enhancement
+      - title: Other Changes
+        labels:
+          - '*'
