@@ -11,16 +11,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     concurrency: release
-    permissions:
-      contents: write
-      checks: write
-      deployments: write
-      pull-requests: write
-      statuses: write
-      repository-projects: write
-      pages: write
-      packages: write
-
+    permissions: write-all
     steps:
       # Checkout the code
       - name: Checkout code
