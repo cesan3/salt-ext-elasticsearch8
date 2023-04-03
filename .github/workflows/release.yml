@@ -7,12 +7,12 @@ on:
       - main
 
 jobs:
-  permissions:
-    contents: write
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
     concurrency: release
+    permissions:
+      contents: write
 
     steps:
       # Checkout the code
