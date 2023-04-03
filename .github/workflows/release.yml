@@ -7,21 +7,19 @@ on:
       - main
 
 jobs:
-  permissions:
-    contents: write
-    checks: write
-    deployments: write
-    pull-requests: write
-    statuses: write
-    repository-projects: write
-    pages: write
-    packages: write
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
     concurrency: release
     permissions:
       contents: write
+      checks: write
+      deployments: write
+      pull-requests: write
+      statuses: write
+      repository-projects: write
+      pages: write
+      packages: write
 
     steps:
       # Checkout the code
