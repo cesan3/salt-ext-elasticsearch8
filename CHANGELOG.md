@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.2](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.1...1.0.2) - 2023-04-17
+- fix: update workflows by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/17
+
 ## [1.0.1](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.0...1.0.1) - 2023-04-03
 - fix: create workflow to auto-release by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/2
 - fix: update workflows by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/3
