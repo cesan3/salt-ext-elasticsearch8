@@ -19,6 +19,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build package
+        run: python -m build
+
       # Set up Git
       - name: Set up Git
         run: |
@@ -41,4 +52,13 @@ jobs:
         uses: haya14busa/action-update-semver@v1
         if: "steps.tagpr.outputs.tag != ''"
         with:
+          tag: ${{ steps.tagpr.outputs.tag }}
+
+      - name: Publish package
+        id: publish
+        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+        if: "steps.tagpr.outputs.tag != ''"
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
           tag: ${{ steps.tagpr.outputs.tag }}
