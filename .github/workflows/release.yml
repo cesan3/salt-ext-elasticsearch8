@@ -13,13 +13,11 @@ jobs:
     concurrency: release
     permissions: write-all
     steps:
-      # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # Set up Git
       - name: Set up Git
         run: |
           git config --global user.name "Cesar Sanchez"
