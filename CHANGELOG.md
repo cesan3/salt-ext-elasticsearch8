@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.6](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.5...1.0.6) - 2023-04-18
+- fix: to test by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/25
+
 ## [1.0.5](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.4...1.0.5) - 2023-04-18
 - fix: update workflow by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/23
 
