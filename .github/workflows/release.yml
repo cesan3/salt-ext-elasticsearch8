@@ -28,7 +28,7 @@ jobs:
       # Get the latest tag to determine the version number
       - name: Get latest tag
         id: latest_tag
-        run: echo ::set-output name=tag::$(git describe --abbrev=0 --tags)
+        run: echo tag=$(git describe --abbrev=0 --tags) >> $GITHUB_OUTPUT
 
       - name: tagpr
         id: tagpr
@@ -43,10 +43,9 @@ jobs:
         with:
           tag: ${{ steps.tagpr.outputs.tag }}
 
-      - name: Checkout code again to pull latest tags
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Get latest tag
+        id: latest_tag
+        run: echo tag=$(git describe --abbrev=0 --tags) >> $GITHUB_OUTPUT
 
       - name: Set up Python
         if: "steps.tagpr.outputs.tag != ''"
