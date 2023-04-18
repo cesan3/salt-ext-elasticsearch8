@@ -19,17 +19,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-      - name: Build package
-        run: python -m build
-
       # Set up Git
       - name: Set up Git
         run: |
@@ -53,6 +42,27 @@ jobs:
         if: "steps.tagpr.outputs.tag != ''"
         with:
           tag: ${{ steps.tagpr.outputs.tag }}
+
+      - name: Set up Python
+        if: "steps.tagpr.outputs.tag != ''"
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        if: "steps.tagpr.outputs.tag != ''"
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Check version to publish
+        if: "steps.tagpr.outputs.tag != ''"
+        run: |
+          python setup.py --version
+
+      - name: Build package
+        if: "steps.tagpr.outputs.tag != ''"
+        run: python -m build
 
       - name: Publish package
         id: publish
