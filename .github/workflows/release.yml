@@ -50,6 +50,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install build
           pip install python-semantic-release
+          echo "__version__ = ${{ steps.tagpr.outputs.tag }}" > src/saltext/elasticsearch8/version.py
 
       - name: Check version to publish
         if: "steps.tagpr.outputs.tag != ''"
@@ -67,4 +68,3 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-          tag: ${{ steps.tagpr.outputs.tag }}
