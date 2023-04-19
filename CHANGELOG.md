@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.10](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.9...1.0.10) - 2023-04-19
+- fix: downgrade package python requirement to 3.6 and salt to 3003 by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/35
+
 ## [1.0.9](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.8...1.0.9) - 2023-04-19
 - fix: update semver after package is published by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/33
 
