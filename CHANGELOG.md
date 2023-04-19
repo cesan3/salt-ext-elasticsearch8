@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.9](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.8...1.0.9) - 2023-04-19
+- fix: update semver after package is published by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/33
+
 ## [1.0.8](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.7...1.0.8) - 2023-04-19
 - fix: testing by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/31
 
