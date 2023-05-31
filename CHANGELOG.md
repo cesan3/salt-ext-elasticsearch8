@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.12](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.11...1.0.12) - 2023-05-31
+- fix: use python 3 as general version by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/39
+
 ## [1.0.11](https://github.com/cesan3/salt-ext-elasticsearch8/compare/1.0.10...1.0.11) - 2023-05-31
 - fix: re-introduce the body for the cluster settings procedure by @cesan3 in https://github.com/cesan3/salt-ext-elasticsearch8/pull/37
 
