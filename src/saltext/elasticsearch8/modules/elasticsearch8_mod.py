@@ -598,9 +598,9 @@ def cluster_get_settings(
 
 
 def cluster_put_settings(
+    body=None,
     hosts=None,
     profile=None,
-    source=None,
     error_trace=None,
     filter_path=None,
     flat_settings=False,
@@ -618,7 +618,7 @@ def cluster_put_settings(
     Set Elasticsearch cluster settings.
 
     body
-        The settings to be updated. Can be either 'transient' or 'persistent' (survivelastic cluster restart)
+        The settings to be updated. Can be either 'transient' or 'persistent' (survives cluster restart)
         http://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-update-settings.html
 
     flat_settings
@@ -631,26 +631,25 @@ def cluster_put_settings(
       salt myminion elasticsearch.cluster_put_settings '{"persistent": {"indices.recovery.max_bytes_per_sec": "50mb"}}'
       salt myminion elasticsearch.cluster_put_settings '{"transient": {"indices.recovery.max_bytes_per_sec": "50mb"}}'
     """
-    if source and (persistent or transient):
-        message = "Either (persistent or transient) or source should be specified but not both."
+    if body is None and persistent is None and transient is None:
+        message = "You must provide a body with settings or provide the persistent or transient data"
         raise SaltInvocationError(message)
-
-    if source is None and persistent is None and transient is None:
-        message = "You must provide the persistent or transient data"
-        raise SaltInvocationError(message)
-
     elastic = _get_instance(hosts=hosts, profile=profile)
 
-    src_map = {}
-    if source is not None:
-        src_map = __salt__["cp.get_file_str"](source, saltenv=__opts__.get("saltenv", "base"))
-
     try:
-        if src_map is not None:
-            transient = src_map.get("transient")
-            persistent = src_map.get("persistent")
-
-        return elastic.cluster.put_settings(
+        if body is not None:
+            return elastic.cluster.put_settings(
+                body=body,
+                flat_settings=flat_settings,
+                error_trace=error_trace,
+                filter_path=filter_path,
+                human=human,
+                master_timeout=master_timeout,
+                pretty=pretty,
+                timeout=timeout,
+            ).body
+        else:
+            return elastic.cluster.put_settings(
             flat_settings=flat_settings,
             error_trace=error_trace,
             filter_path=filter_path,
